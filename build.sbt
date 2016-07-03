@@ -37,7 +37,7 @@ lazy val root = (project in file(".")).
       "com.typesafe.akka" % "akka-cluster-metrics_2.11" % "2.4.7",
       "io.fabric8.forge" % "kubernetes" % "2.2.211"
     ),
-    git.baseVersion := "0.1.0",
+    git.baseVersion := "0.1.2",
     dockerfile in docker := {
       val jarFile: File = sbt.Keys.`package`.in(Compile).value
       val classpath = (managedClasspath in Compile).value
