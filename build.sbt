@@ -22,8 +22,10 @@
 //  }
 //}
 
+import com.github.nscala_time.time.Imports._
+
 lazy val root = (project in file(".")).
-  enablePlugins(DockerPlugin).
+  enablePlugins(DockerPlugin, GitVersioning).
   settings(packAutoSettings).
   settings(
     name := "akka-cluster-sample101",
@@ -35,19 +37,18 @@ lazy val root = (project in file(".")).
       "com.typesafe.akka" % "akka-cluster-metrics_2.11" % "2.4.7",
       "io.fabric8.forge" % "kubernetes" % "2.2.211"
     ),
+    git.baseVersion := "0.1.0",
     dockerfile in docker := {
       val jarFile: File = sbt.Keys.`package`.in(Compile).value
       val classpath = (managedClasspath in Compile).value
       val mainclass = mainClass.in(Compile).value.getOrElse("")
       val classpathString = classpath.files.map("/app/libs/" + _.getName).mkString(":") + ":" + s"/app/${jarFile.getName}"
-
-      val sdf = new java.text.SimpleDateFormat("MM/dd/yyyy")
-
+      val `modify@` = (format: String, file: File) => new DateTime(file.lastModified()).toString(format)
 
         new Dockerfile {
         from("java:8-jre-alpine")
-        classpath.files.groupBy{ file => sdf.format(file.lastModified())}.foreach { g =>
-          add(g._2, "/app/libs/")
+        classpath.files.groupBy(`modify@`("MM/dd/yyyy",_)).map { case (g, files) =>
+          add(files, "/app/libs/")
         }
         //add(classpath.files, "/app/libs/")
         add(jarFile, "/app/")
@@ -55,3 +56,6 @@ lazy val root = (project in file(".")).
       }
     }
   )
+
+useJGit
+
