@@ -41,12 +41,7 @@ lazy val root = (project in file(".")).
     ),
     git.baseVersion := "0.1.3",
     git.useGitDescribe := true,
-    git.gitTagToVersionNumber := {
-      case VersionRegex(v,"") => Some(v)
-      case VersionRegex(v,"SNAPSHOT") => Some(s"$v-SNAPSHOT")
-      case VersionRegex(v,s) => Some(s"$v-$s-SNAPSHOT")
-      case _ => None
-    },
+
     dockerfile in docker := {
       val jarFile: File = sbt.Keys.`package`.in(Compile).value
       val classpath = (managedClasspath in Compile).value
