@@ -2,8 +2,11 @@ machine:
   services:
     - docker
 
+  java:
+    version: oraclejdk8
+
   environment:
-    SBT_VERSION: 0.13.8
+    SBT_VERSION: 0.13.11
     SBT_OPTS: "-Xms512M -Xmx1536M -Xss1M -XX:+CMSClassUnloadingEnabled -XX:MaxPermSize=256M"
 
 dependencies:
@@ -16,3 +19,14 @@ dependencies:
     - chmod u+x $HOME/bin/sbt
     - which sbt
     - sbt sbt-version
+  override:
+      - docker info
+
+test:
+  override:
+
+deployment:
+  hub:
+    branch: master
+    commands:
+      - docker login -e $DOCKERHUB_MAIL -p $DOCKERHUB_PASSWORD -u $DOCKERHUB_LOGIN
