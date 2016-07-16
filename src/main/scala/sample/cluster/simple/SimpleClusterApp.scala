@@ -28,6 +28,8 @@ object SimpleClusterApp {
       //system.eventStream.subscribe(deadLettersSubscriber, classOf[DeadLetter])
 
       system.actorOf(Props[ClusterDiscoveryActor]) ! JoinCluster
+
+
     }
 
   }
