@@ -1,34 +1,10 @@
-//import sbt.Keys.{artifactPath}
-//
-//name := "akka-cluster-sample101"
-//
-//version := "1.0"
-//
-
-//
-//libraryDependencies := Seq(
-//  "com.typesafe.akka" %% "akka-cluster" % "2.4.7",
-//  "com.typesafe.akka" % "akka-cluster-metrics_2.11" % "2.4.7"
-//)
-//
-//enablePlugins(DockerPlugin)
-//
-//packAutoSettings
-//
-//dockerfile in docker := {
-//  new Dockerfile {
-//
-//    from("java:8-jdk-alpine")
-//  }
-//}
-
 import com.github.nscala_time.time.Imports._
 
 val VersionRegex = "v([0-9]+.[0-9]+.[0-9]+)-?(.*)?".r
 
 lazy val root = (project in file(".")).
   enablePlugins(DockerPlugin, GitVersioning, GitBranchPrompt).
-  settings(packAutoSettings).
+  settings(packAutoSettings ++ useJGit).
   settings(
     name := "akka-cluster-sample101",
     scalaVersion := "2.11.8",
@@ -37,11 +13,13 @@ lazy val root = (project in file(".")).
     libraryDependencies := Seq(
       "com.typesafe.akka" %% "akka-cluster" % "2.4.7",
       "com.typesafe.akka" % "akka-cluster-metrics_2.11" % "2.4.7",
+      "com.typesafe.akka" %% "akka-persistence" % "2.4.7",
+      "com.typesafe.akka" %% "akka-persistence-cassandra" % "0.17",
+      "com.github.romix.akka" %% "akka-kryo-serialization" % "0.4.1",
       "io.fabric8.forge" % "kubernetes" % "2.2.211"
     ),
     git.baseVersion := "0.1.3",
     git.useGitDescribe := true,
-
     dockerfile in docker := {
       val jarFile: File = sbt.Keys.`package`.in(Compile).value
       val classpath = (managedClasspath in Compile).value
@@ -58,8 +36,13 @@ lazy val root = (project in file(".")).
         add(jarFile, "/app/")
         entryPoint("java", "-cp", classpathString, mainclass)
       }
-    }
+    },
+    imageNames in docker := Seq(
+      ImageName(
+        namespace = Some("index.tenxcloud.com/henryrao"),
+        repository = "akka-cluster",
+        tag = Some(version.value)
+      )
+    )
   )
-
-useJGit
 

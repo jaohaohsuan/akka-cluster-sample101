@@ -1,22 +1,22 @@
 package sample.cluster.simple
 
-import akka.actor.{Actor, DeadLetter}
+import akka.actor.{Actor, ActorLogging, DeadLetter}
 import akka.cluster.ClusterEvent.CurrentClusterState
 import akka.cluster.ClusterMessage
 
 /**
   * Created by henryjao on 7/2/16.
   */
-class EchoActor extends Actor {
+class EchoActor extends Actor with ActorLogging {
 
   def receive = {
 
-    case c: CurrentClusterState if c.members.isEmpty =>
-      context.system.terminate()
-    case DeadLetter(c:ClusterMessage, _ , _) =>
-      println(s"$c------")
+    //case c: CurrentClusterState if c.members.isEmpty =>
 
-    case msg => println(s"New msg received: $msg")
+    case DeadLetter(c:ClusterMessage, _ , _) =>
+        log.info(s"Cluster DeadLetter: \n$c\n")
+
+    case unknown => log.warning(s"unexpected: \n$unknown\n")
   }
 
 }
