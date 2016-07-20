@@ -16,7 +16,8 @@ class EchoActor extends Actor with ActorLogging {
     case DeadLetter(c:ClusterMessage, _ , _) =>
         log.info(s"Cluster DeadLetter: \n$c\n")
 
-    case unknown => log.warning(s"unexpected: \n$unknown\n")
+    case unknown =>
+      log.warning(s"---${sender()} unexpected: $unknown")
   }
 
 }

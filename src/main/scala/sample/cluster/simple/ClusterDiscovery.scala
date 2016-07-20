@@ -15,7 +15,7 @@ case object JoinCluster
 
 case class SeedNodes(seq: Seq[String])
 
-class ClusterDiscoveryActor extends Actor with ActorLogging {
+class ClusterDiscovery extends Actor with ActorLogging {
 
   private lazy val DISCOVERY_SERVICE = Option(System.getenv("DISCOVERY_SERVICE"))
   private lazy val IFAC = Option(System.getenv("IFAC")).getOrElse("eth0")
@@ -29,7 +29,7 @@ class ClusterDiscoveryActor extends Actor with ActorLogging {
     case Success(SeedNodes(seq)) => cluster.joinSeedNodes(seq.map{ addr => Address("akka.tcp", context.system.name, Some(addr), Some(2600))})
     case Failure(ex: java.net.UnknownHostException) =>
       context.system.scheduler.scheduleOnce(3 seconds, self, JoinCluster)
-      log.warning("akka-discovery-svc resolve fail.")
+      log.warning(s"$DISCOVERY_SERVICE resolve fail.")
   }
 
   sys addShutdownHook {
@@ -56,13 +56,14 @@ class ClusterDiscoveryActor extends Actor with ActorLogging {
   private def getSeedNodes = {
     Try(
       SeedNodes(DISCOVERY_SERVICE match {
-      case Some(value) if value.matches("""[\w.]+\.\w+""") => java.net.InetAddress.getAllByName(value).map(_.getHostAddress).toSeq
+      case Some(value) if value.matches("""[\w.]+\.\w+""") =>
+        java.net.InetAddress.getAllByName(value).map(_.getHostAddress).filterNot(_ == getHostAddress).toSeq :+ getHostAddress
       case _ => Seq(getHostAddress)
     }))
   }
 
 
-  private def getHostAddress: String = {
+  private lazy val getHostAddress: String = {
     import java.net._
     NetworkInterface.getNetworkInterfaces
       .find(_.getName equals IFAC)
